@@ -3,6 +3,8 @@ package com.primetrade_ai.assignment.Controller;
 
 import com.primetrade_ai.assignment.Payload.Response.MessageResponse;
 import com.primetrade_ai.assignment.Security.Services.CloudinaryService;
+import org.springframework.http.MediaType;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,7 +21,7 @@ public class FileUploadController {
     @Autowired
     CloudinaryService cloudinaryService;
 
-    @PostMapping
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> uploadFile(@RequestParam("file") MultipartFile file) {
         try {
             

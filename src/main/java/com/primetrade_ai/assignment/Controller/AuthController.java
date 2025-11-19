@@ -84,7 +84,11 @@ public class AuthController {
         user.setPassword(encoder.encode(signUpRequest.getPassword()));
         user.setIsAdmin(signUpRequest.getIsAdmin() != null && signUpRequest.getIsAdmin());
         user.setIsVerified(false); 
+
+        user.setAvatar(signUpRequest.getAvatar());
         System.out.println("user : " + user.toString());
+
+
 
         userRepository.save(user);
 

@@ -1,7 +1,5 @@
 package com.primetrade_ai.assignment.Security;
 
-
-
 import com.primetrade_ai.assignment.Security.Jwt.AuthEntryPointJwt;
 import com.primetrade_ai.assignment.Security.Jwt.AuthTokenFilter;
 import com.primetrade_ai.assignment.Security.Services.UserDetailsServiceImpl;
@@ -58,11 +56,16 @@ public class WebSecurityConfig {
         http.csrf(csrf -> csrf.disable())
                 .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth ->
-                        auth.requestMatchers("/api/auth/**").permitAll() // Open for Login/Register
-                                .requestMatchers("/api/test/**").permitAll() // Public endpoints
-                                .requestMatchers("/uploads/**").permitAll()  // Allow access to images
-                                .anyRequest().authenticated() // Everything else needs a token
+                .authorizeHttpRequests(auth -> auth.requestMatchers("/api/auth/**").permitAll() // Open for
+                                                                                                // Login/Register
+                        .requestMatchers("/api/test/**").permitAll() // Public endpoints
+                        .requestMatchers("/uploads/**").permitAll()
+                        .requestMatchers("/api/upload").permitAll() // Allow access to images
+
+                        .requestMatchers("/v3/api-docs/**").permitAll()
+                        .requestMatchers("/swagger-ui/**").permitAll()
+                        .requestMatchers("/swagger-ui.html").permitAll()
+                        .anyRequest().authenticated() // Everything else needs a token
                 );
 
         http.authenticationProvider(authenticationProvider());

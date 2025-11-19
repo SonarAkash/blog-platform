@@ -25,4 +25,6 @@ public class SignupRequest {
     private String lastname;
 
     private Boolean isAdmin;
+
+    private String avatar;
 }
