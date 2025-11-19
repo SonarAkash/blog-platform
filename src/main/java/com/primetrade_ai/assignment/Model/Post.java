@@ -1,0 +1,45 @@
+package com.primetrade_ai.assignment.Model;
+
+
+import jakarta.persistence.*;
+import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import java.time.LocalDateTime;
+
+@Entity
+@Table(name = "posts")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class Post {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false)
+    private String title;
+
+    @Column(nullable = false, columnDefinition = "TEXT")
+    private String body;
+
+    private String thumbnail; // Stores the URL/Path to the image
+
+    @Column(name = "is_featured")
+    private Boolean isFeatured;
+
+    @CreationTimestamp // Automatically sets time when saved
+    @Column(name = "date_time", updatable = false)
+    private LocalDateTime dateTime;
+
+    // Relationship: Many Posts belong to One Category
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "category_id")
+    private Category category;
+
+    // Relationship: Many Posts belong to One User (Author)
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "author_id")
+    private User author;
+}
