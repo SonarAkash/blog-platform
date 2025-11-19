@@ -5,6 +5,5 @@ import com.primetrade_ai.assignment.Model.Category;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface CategoryRepository extends JpaRepository<Category, Long> {
-    // No custom methods needed yet.
-    // We get save(), delete(), findById(), findAll() for free.
+    
 }

@@ -6,10 +6,9 @@ import java.util.List;
 
 public interface PostRepository extends JpaRepository<Post, Long> {
 
-    // Needed for the Homepage: List posts by a specific Category
+    
     List<Post> findByCategoryId(Long categoryId);
 
-    // Needed for the "Manage Posts" Dashboard:
-    // "SELECT * FROM posts WHERE author_id = ?"
+    
     List<Post> findByAuthorId(Long authorId);
 }

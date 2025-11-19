@@ -5,7 +5,7 @@ import lombok.*;
 
 @Entity
 @Table(name = "users")
-@Data // Generates Getters, Setters, toString, etc.
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -29,13 +29,13 @@ public class User {
     private String email;
 
     @Column(nullable = false)
-    private String password; // Will store the BCrypt hash
+    private String password; 
 
-    private String avatar; // Stores the URL/Path to the image
+    private String avatar; 
 
     @Column(name = "is_admin", nullable = false)
     private Boolean isAdmin;
 
     @Column(name = "is_verified")
-    private Boolean isVerified = false; // Default is false
+    private Boolean isVerified = false; 
 }

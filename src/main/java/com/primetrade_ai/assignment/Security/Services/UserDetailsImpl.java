@@ -1,7 +1,7 @@
 package com.primetrade_ai.assignment.Security.Services;
 
 
-import com.primetrade_ai.assignment.Model.User; // Make sure this import matches your Step 1 package
+import com.primetrade_ai.assignment.Model.User; 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -36,12 +36,12 @@ public class UserDetailsImpl implements UserDetails {
     }
 
     public static UserDetailsImpl build(User user) {
-        // LOGIC: Map your isAdmin boolean to Spring Security Roles
+       
         List<GrantedAuthority> authorities = new ArrayList<>();
-        // Everyone gets USER role
+        
         authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
 
-        // If isAdmin is true, they also get ADMIN role
+       
         if (Boolean.TRUE.equals(user.getIsAdmin())) {
             authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
         }

@@ -24,17 +24,17 @@ public class OtpService {
     private BrevoEmailService emailService;
 
     public void generateAndSendOtp(String email) {
-        // 1. Generate 6-digit OTP
+        
         String otp = String.format("%06d", new Random().nextInt(999999));
 
-        // 2. Save to Redis (Key: "otp:email", Value: "123456", TTL: 5 mins)
+        
         redisTemplate.opsForValue().set("otp:" + email, otp, Duration.ofMinutes(5));
 
-        // 3. Send Email
+       
         try {
             emailService.sendOtpEmail(email, otp);
         } catch (ApiException e) {
-//            throw new RuntimeException(e);
+
             logger.error("Failed to send otp : " + e.getMessage());
         }
     }

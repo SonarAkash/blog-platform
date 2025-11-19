@@ -24,7 +24,5 @@ public class SignupRequest {
     private String firstname;
     private String lastname;
 
-    // Optional: Allow setting admin status during signup for this demo
-    // (In real life, you wouldn't expose this, but it helps for the assignment demo)
     private Boolean isAdmin;
 }

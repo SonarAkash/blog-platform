@@ -44,18 +44,20 @@ public class AuthController {
     @PostMapping("/signin")
     public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
 
-        // 1. Authenticate the { username, password }
+        
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
 
-        // 2. If valid, set the Security Context
+        
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        // 3. Generate JWT Token
+        
         String jwt = jwtUtils.generateJwtToken(authentication);
 
-        // 4. Get User Details to send back
+        
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+
+        System.err.println("mail : " + loginRequest.getEmail());
 
         return ResponseEntity.ok(new JwtResponse(jwt,
                 userDetails.getId(),
@@ -73,7 +75,7 @@ public class AuthController {
             return ResponseEntity.badRequest().body(new MessageResponse("Error: Email is already in use!"));
         }
 
-        // Create User (Verified = FALSE by default)
+       
         User user = new User();
         user.setFirstname(signUpRequest.getFirstname());
         user.setLastname(signUpRequest.getLastname());
@@ -81,13 +83,12 @@ public class AuthController {
         user.setEmail(signUpRequest.getEmail());
         user.setPassword(encoder.encode(signUpRequest.getPassword()));
         user.setIsAdmin(signUpRequest.getIsAdmin() != null && signUpRequest.getIsAdmin());
-        user.setIsVerified(false); // <--- Important
-
+        user.setIsVerified(false); 
         System.out.println("user : " + user.toString());
 
         userRepository.save(user);
 
-        // Generate and Send OTP
+       
         otpService.generateAndSendOtp(user.getEmail());
 
         return ResponseEntity.ok(new MessageResponse("User registered! Please check your email for OTP."));
@@ -98,10 +99,10 @@ public class AuthController {
         boolean isValid = otpService.validateOtp(request.getEmail(), request.getOtp());
 
         if (isValid) {
-            // Find user and set verified = true
-            User user = userRepository.findByEmail(request.getEmail()) // Assuming email is unique
+           
+            User user = userRepository.findByEmail(request.getEmail()) 
                     .orElseThrow(() -> new RuntimeException("User not found"));
-            // Note: You might need to add findByEmail to repository if you search by email
+            
 
             user.setIsVerified(true);
             userRepository.save(user);

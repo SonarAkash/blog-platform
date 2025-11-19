@@ -38,21 +38,21 @@ public class BrevoEmailService {
         try {
             SendSmtpEmail email = new SendSmtpEmail();
 
-            // Set sender
+           
             SendSmtpEmailSender sender = new SendSmtpEmailSender();
             sender.setEmail("a.sonar.9113@gmail.com");
             sender.setName("Blogify");
             email.setSender(sender);
 
-            // Set recipient
+            
             SendSmtpEmailTo to = new SendSmtpEmailTo();
             to.setEmail(toEmail);
             email.setTo(Arrays.asList(to));
 
-            // Set subject
+           
             email.setSubject("Blogify - Your Verification Code");
 
-            // Set HTML content
+           
             String htmlContent = """
                 <!DOCTYPE html>
                 <html>
@@ -160,7 +160,7 @@ public class BrevoEmailService {
                             
                                 <div class="otp-container">
                                 <div class="otp-code">{0}</div>
-                                <p class="expiry-text">⏰ This code will expire in 1 minute</p>
+                                <p class="expiry-text">⏰ This code will expire in 5 minute</p>
                             </div>
                             <p class="security-note">If you didn't request this code, please ignore this email. Your security is important to us, and someone might have typed your email address by mistake.</p>
                         </div>
@@ -179,7 +179,7 @@ public class BrevoEmailService {
                 </html>
             """;
 
-            // Replace the placeholder with the actual OTP
+           
             htmlContent = htmlContent.replace("{0}", otp);
             email.setHtmlContent(htmlContent);
 
@@ -205,7 +205,7 @@ public class BrevoEmailService {
         }
     }
 
-    // Utility method to mask email for logging
+    
     private String maskEmail(String email) {
         if (email == null || email.length() < 5) return "***";
         int atIndex = email.indexOf('@');
