@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="./css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        .dashboard { margin-top: 6rem; }
+        .hidden { display: none !important; }
+        aside a.active { background: var(--color-gray-900); }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="container nav__container">
+            <a href="index.html" class="nav__logo">DIEMS BLOG.</a>
+            <ul class="nav__items">
+                <li><a href="index.html">Blog</a></li>
+                <li><a href="about.html">About</a></li>
+                <li><a href="contact.html">Contact</a></li>
+                <li class="nav__profile">
+                    <div class="avatar"><img id="nav-avatar" src=""></div>
+                    <ul>
+                        <li><a href="#" onclick="logout()">Logout</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <section class="dashboard">
+        <div class="container dashboard__container">
+
+            <!-- SIDEBAR -->
+            <aside>
+                <ul>
+                    <li>
+                        <a href="#" onclick="showTab('add-post', this)">
+                            <i class="fa-solid fa-pen"></i><h5>Write Post</h5>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" onclick="showTab('manage-posts', this)" class="active">
+                            <i class="fa-solid fa-address-card"></i><h5>Manage Posts</h5>
+                        </a>
+                    </li>
+                    <li class="admin-only hidden">
+                        <a href="#" onclick="showTab('add-category', this)">
+                            <i class="fa-solid fa-pen-to-square"></i><h5>Add Category</h5>
+                        </a>
+                    </li>
+                    <li class="admin-only hidden">
+                        <a href="#" onclick="showTab('manage-categories', this)">
+                            <i class="fa-solid fa-list"></i><h5>Manage Categories</h5>
+                        </a>
+                    </li>
+                </ul>
+            </aside>
+
+
+            <!-- MAIN CONTENT -->
+            <main>
+
+                <!-- MANAGE POSTS -->
+                <div id="view-manage-posts">
+                    <h2>Manage Posts</h2>
+                    <table>
+                        <thead>
+                            <tr><th>Title</th><th>Category</th><th>Action</th></tr>
+                        </thead>
+                        <tbody id="posts-table-body"></tbody>
+                    </table>
+                </div>
+
+                <!-- ADD / EDIT POST -->
+                <div id="view-add-post" class="hidden">
+                    <h2 id="form-title">Add Post</h2>
+
+                    <form onsubmit="handleSavePost(event)">
+                        <input type="hidden" id="edit-post-id">
+
+                        <input type="text" id="post-title" placeholder="Title" required>
+                        <select id="post-category-select"></select>
+                        <textarea id="post-body" rows="10" placeholder="Body Content" required></textarea>
+
+                        <div class="form__control inline admin-only hidden">
+                            <input type="checkbox" id="is-featured">
+                            <label for="is-featured" style="color:white;">Featured</label>
+                        </div>
+
+                        <div class="form__control">
+                            <label style="color:rgba(255,255,255,0.7);">
+                                Thumbnail (Leave empty to keep current)
+                            </label>
+                            <input type="file" id="post-file">
+                            <small id="post-upload-status" style="color: var(--color-green); display:none;"></small>
+                        </div>
+
+                        <button type="submit" class="btn" id="btn-save-post">Publish Post</button>
+                        <button type="button" class="btn danger hidden" id="btn-cancel-edit" onclick="resetPostForm()">Cancel Edit</button>
+                    </form>
+                </div>
+
+                <!-- MANAGE CATEGORIES -->
+                <div id="view-manage-categories" class="hidden">
+                    <h2>Manage Categories</h2>
+                    <table>
+                        <thead><tr><th>Title</th><th>Action</th></tr></thead>
+                        <tbody id="cats-table-body"></tbody>
+                    </table>
+                </div>
+
+                <!-- ADD CATEGORY -->
+                <div id="view-add-category" class="hidden">
+                    <h2>Add Category</h2>
+                    <form onsubmit="handleAddCategory(event)">
+                        <input type="text" id="cat-title" placeholder="Category Title" required>
+                        <textarea id="cat-desc" rows="4" placeholder="Description" required></textarea>
+                        <button type="submit" class="btn">Add Category</button>
+                    </form>
+                </div>
+
+            </main>
+        </div>
+    </section>
+
+   <script src="js/main.js"></script>
+
+<script>
+    /* ---------------------- GLOBALS ---------------------- */
+    const API_URL = "http://localhost:8080/api";
+    const currentUser = JSON.parse(localStorage.getItem("user"));
+    const token = localStorage.getItem("jwtToken");
+
+    /* ---------------------- ON LOAD ---------------------- */
+    window.onload = async () => {
+        if (!token || !currentUser) {
+            return (window.location.href = "signin.html");
+        }
+
+        // Navbar avatar
+        const avatarImg = document.getElementById("nav-avatar");
+        avatarImg.src = currentUser.avatar || "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+
+        // Admin items
+        if (currentUser.isAdmin) {
+            document.querySelectorAll(".admin-only").forEach(el =>
+                el.classList.remove("hidden")
+            );
+        }
+
+        await loadMyPosts();
+        if (currentUser.isAdmin) await loadCategoriesTable();
+    };
+
+    /* ---------------- TAB SWITCH ---------------- */
+    function showTab(tabName, linkEl) {
+        const views = [
+            "view-manage-posts",
+            "view-add-post",
+            "view-manage-categories",
+            "view-add-category"
+        ];
+
+        views.forEach(id => document.getElementById(id).classList.add("hidden"));
+        document.getElementById(`view-${tabName}`).classList.remove("hidden");
+
+        document.querySelectorAll("aside a").forEach(a => a.classList.remove("active"));
+        linkEl.classList.add("active");
+
+        if (tabName === "add-post") {
+            loadCategoriesDropdown();
+
+            if (!document.getElementById("edit-post-id").value) {
+                resetPostForm();
+            }
+        }
+    }
+
+    /* ---------------- LOAD POSTS ---------------- */
+    async function loadMyPosts() {
+        try {
+            const res = await fetch(`${API_URL}/posts`);
+            const posts = await res.json();
+            const tbody = document.getElementById("posts-table-body");
+            tbody.innerHTML = "";
+
+            console.log("All Posts:", posts);
+            console.log("Current User ID:", currentUser.id);
+
+            const myPosts = currentUser.isAdmin
+                ? posts
+                : posts.filter(p => p.author && p.author.id == currentUser.id); 
+
+            if (myPosts.length === 0) {
+                tbody.innerHTML = "<tr><td colspan='3'>No posts found.</td></tr>";
+                return;
+            }
+
+            myPosts.forEach(post => {
+                const catTitle = post.category ? post.category.title : "General";
+                
+                const safeTitle = post.title.replace(/'/g, "\\'");
+                
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${post.title}</td>
+                        <td>${catTitle}</td>
+                        <td style="display:flex; gap:6px;">
+                            <a href="#" class="btn sm" onclick="editPost(${post.id})">Edit</a>
+                            <a href="#" class="btn sm danger" onclick="deletePost(${post.id})">Delete</a>
+                        </td>
+                    </tr>
+                `;
+            });
+        } catch(e) {
+            console.error("Error loading posts:", e);
+        }
+    }
+
+    /* ---------------- EDIT POST ---------------- */
+    async function editPost(id) {
+        const res = await fetch(`${API_URL}/posts/${id}`);
+        const post = await res.json();
+
+        document.getElementById("edit-post-id").value = post.id;
+        document.getElementById("post-title").value = post.title;
+        document.getElementById("post-body").value = post.body;
+        document.getElementById("is-featured").checked = post.isFeatured;
+
+        await loadCategoriesDropdown();
+        if (post.category) {
+            document.getElementById("post-category-select").value = post.category.id;
+        }
+
+        document.getElementById("form-title").innerText = "Edit Post";
+        document.getElementById("btn-save-post").innerText = "Update Post";
+        document.getElementById("btn-cancel-edit").classList.remove("hidden");
+
+        showTab("add-post", document.querySelectorAll("aside a")[0]);
+    }
+
+    function resetPostForm() {
+        document.getElementById("edit-post-id").value = "";
+        document.getElementById("post-title").value = "";
+        document.getElementById("post-body").value = "";
+        document.getElementById("post-file").value = "";
+
+        document.getElementById("form-title").innerText = "Add Post";
+        document.getElementById("btn-save-post").innerText = "Publish Post";
+        document.getElementById("btn-cancel-edit").classList.add("hidden");
+    }
+
+    /* ---------------- SAVE / UPDATE POST ---------------- */
+   async function handleSavePost(e) {
+        e.preventDefault();
+        const editId = document.getElementById("edit-post-id").value;
+        const btn = document.getElementById("btn-save-post");
+        
+        const catId = document.getElementById("post-category-select").value;
+        if(!catId) { showToast("Please select a category", "error"); return; }
+
+        btn.disabled = true;
+        btn.innerText = "Processing...";
+
+        try {
+            let imgUrl = "";
+            const fileInput = document.getElementById("post-file");
+
+            if (fileInput.files.length > 0) {
+                const formData = new FormData();
+                formData.append("file", fileInput.files[0]);
+                const uploadRes = await fetch(`${API_URL}/upload`, { method: "POST", body: formData });
+                const uploadData = await uploadRes.json();
+                imgUrl = uploadData.url;
+            }
+
+            const payload = {
+                title: document.getElementById("post-title").value,
+                body: document.getElementById("post-body").value,
+                categoryId: catId,
+                thumbnail: imgUrl,
+                isFeatured: document.getElementById("is-featured").checked
+            };
+
+            const method = editId ? "PUT" : "POST";
+            const endpoint = editId ? `${API_URL}/posts/${editId}` : `${API_URL}/posts`;
+
+            const res = await fetch(endpoint, {
+                method,
+                headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+                body: JSON.stringify(payload)
+            });
+
+            if(res.ok) {
+                showToast(editId ? "Post Updated!" : "Post Published!", "success");
+                resetPostForm();
+                loadMyPosts();
+                showTab("manage-posts", document.querySelectorAll("aside a")[1]);
+            } else {
+                throw new Error("Server Error");
+            }
+        } catch (err) {
+            showToast("Error saving post", "error");
+        }
+        btn.disabled = false;
+        btn.innerText = editId ? "Update Post" : "Publish Post";
+    }
+
+    /* ---------------- DELETE POST ---------------- */
+    async function deletePost(id) {
+        if (!confirm("Delete this post?")) return;
+        await fetch(`${API_URL}/posts/${id}`, {
+            method: "DELETE",
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        loadMyPosts();
+    }
+
+    /* ---------------- CATEGORIES ---------------- */
+    async function loadCategoriesDropdown() {
+        const res = await fetch(`${API_URL}/categories`);
+        const cats = await res.json();
+
+        const select = document.getElementById("post-category-select");
+        select.innerHTML = "";
+
+        cats.forEach(c => {
+            select.innerHTML += `<option value="${c.id}">${c.title}</option>`;
+        });
+    }
+
+    async function loadCategoriesTable() {
+        const res = await fetch(`${API_URL}/categories`);
+        const cats = await res.json();
+
+        const tbody = document.getElementById("cats-table-body");
+        tbody.innerHTML = "";
+
+        cats.forEach(c => {
+            tbody.innerHTML += `
+                <tr>
+                    <td>${c.title}</td>
+                    <td><a href="#" class="btn sm danger" onclick="deleteCategory(${c.id})">Delete</a></td>
+                </tr>
+            `;
+        });
+    }
+
+    async function deleteCategory(id) {
+        if (!confirm("Delete category?")) return;
+        await fetch(`${API_URL}/categories/${id}`, {
+            method: "DELETE",
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        loadCategoriesTable();
+    }
+
+    async function handleAddCategory(e) {
+        e.preventDefault();
+
+        await fetch(`${API_URL}/categories`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                title: document.getElementById("cat-title").value,
+                description: document.getElementById("cat-desc").value
+            })
+        });
+
+        showToast("Category Added!", "success");
+
+        e.target.reset();
+        loadCategoriesTable();
+    }
+</script>
+
+</body>
+</html>

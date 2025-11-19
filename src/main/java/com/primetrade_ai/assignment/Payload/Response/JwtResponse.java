@@ -11,12 +11,14 @@ public class JwtResponse {
     private String username;
     private String email;
     private Boolean isAdmin;
+    private String avatar;
 
-    public JwtResponse(String accessToken, Long id, String username, String email, Boolean isAdmin) {
+    public JwtResponse(String accessToken, Long id, String username, String email, Boolean isAdmin, String avatar) {
         this.token = accessToken;
         this.id = id;
         this.username = username;
         this.email = email;
         this.isAdmin = isAdmin;
+        this.avatar = avatar;
     }
 }

@@ -24,21 +24,21 @@ public class Post {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String body;
 
-    private String thumbnail; // Stores the URL/Path to the image
+    private String thumbnail; 
 
     @Column(name = "is_featured")
     private Boolean isFeatured;
 
-    @CreationTimestamp // Automatically sets time when saved
+    @CreationTimestamp 
     @Column(name = "date_time", updatable = false)
     private LocalDateTime dateTime;
 
-    // Relationship: Many Posts belong to One Category
+    
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "category_id")
     private Category category;
 
-    // Relationship: Many Posts belong to One User (Author)
+    
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "author_id")
     private User author;

@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up</title>
+    <link rel="stylesheet" href="./css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>.hidden { display: none; }</style>
+</head>
+<body>
+    <section class="form__section">
+        <div class="container form__section-container">
+            
+            <div id="signup-container">
+                <h2 style="text-align: center; margin-bottom: 20px;">Sign Up</h2>
+                <form onsubmit="handleSignup(event)">
+                    <input type="text" id="firstname" placeholder="First Name" required>
+                    <input type="text" id="lastname" placeholder="Last Name" required>
+                    <input type="text" id="username" placeholder="Username" required>
+                    <input type="email" id="email" placeholder="Email" required>
+                    <input type="password" id="password" placeholder="Create Password" required>
+                    <input type="password" id="confirmpassword" placeholder="Confirm Password" required>
+                    
+                    <div class="form__control inline" style="color: white; margin-top: 10px;">
+                        <label for="is-admin">Register as Admin?</label>
+                        <input type="checkbox" id="is-admin" style="width: auto;">
+                    </div>
+
+                    <div class="form__control">
+                        <label for="avatar" style="color: rgba(242, 242, 254, 0.7);">User Avatar</label>
+                        <input type="file" id="avatar-file" accept="image/*">
+                        <small id="upload-status" style="color: var(--color-green); display: none;">Uploading...</small>
+                    </div>
+                    
+                    <button type="submit" class="btn" id="submit-btn">Sign Up</button>
+                    <small style="text-align: center;">Already have an account? <a href="signin.html">Sign In</a></small>
+                </form>
+            </div>
+
+            <div id="otp-container" class="hidden" style="text-align: center;">
+                <h2>Verify Account</h2>
+                <p style="color: #ccc; margin-bottom: 1rem;">Enter code sent to <b id="verify-email-display" style="color:white;"></b></p>
+                
+                <form onsubmit="handleVerify(event)">
+                    <input type="text" id="otp-input" placeholder="6-Digit Code" required maxlength="6" style="text-align: center; letter-spacing: 5px; font-size: 1.5rem; font-weight: bold;">
+                    
+                    <button type="submit" class="btn" id="verify-btn">Verify & Login</button>
+                    
+                    <button type="button" id="resend-btn" class="btn" style="background: transparent; border: 1px solid #ccc; margin-top: 10px;" disabled>Resend OTP (30s)</button>
+                </form>
+            </div>
+
+        </div>
+    </section>
+
+    <script src="js/main.js"></script>
+    <script src="js/main.js"></script>
+    <script>
+        const API_URL = "http://localhost:8080/api";
+        
+        let registeredEmail = "";
+        let resendTimer = 30;
+        let resendInterval;
+
+        async function handleSignup(e) {
+            e.preventDefault();
+            const btn = document.getElementById("submit-btn");
+            const statusMsg = document.getElementById("upload-status");
+            const password = document.getElementById("password").value;
+            const confirmPassword = document.getElementById("confirmpassword").value;
+
+            if(password !== confirmPassword) {
+                showToast("Passwords do not match", "error");
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerText = "Processing...";
+
+            try {
+                let avatarUrl = ""; 
+                const fileInput = document.getElementById("avatar-file");
+                
+                if (fileInput.files.length > 0) {
+                    btn.innerText = "Uploading Image...";
+                    statusMsg.style.display = "block";
+                    statusMsg.innerText = "⏳ Uploading...";
+                    
+                    const formData = new FormData();
+                    formData.append("file", fileInput.files[0]);
+
+                    const uploadRes = await fetch(`${API_URL}/upload`, {
+                        method: "POST",
+                        body: formData
+                    });
+
+                    if (!uploadRes.ok) throw new Error("Image Upload Failed");
+                    
+                    const uploadData = await uploadRes.json();
+                    avatarUrl = uploadData.url;
+                    statusMsg.innerText = "✅ Done!";
+                }
+
+                btn.innerText = "Registering...";
+                registeredEmail = document.getElementById("email").value;
+                
+                const payload = {
+                    firstname: document.getElementById("firstname").value,
+                    lastname: document.getElementById("lastname").value,
+                    username: document.getElementById("username").value,
+                    email: registeredEmail,
+                    password: password,
+                    isAdmin: document.getElementById("is-admin").checked,
+                    avatar: avatarUrl
+                };
+
+                const regRes = await fetch(`${API_URL}/auth/signup`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+
+                const regData = await regRes.json();
+
+                if (regRes.ok) {
+                    showToast("OTP Sent! Check your email.", "success");
+                    
+                    document.getElementById("signup-container").classList.add("hidden");
+                    document.getElementById("otp-container").classList.remove("hidden");
+                    document.getElementById("verify-email-display").innerText = registeredEmail;
+                    
+                    startResendTimer();
+                } else {
+                    throw new Error(regData.message || "Registration Failed");
+                }
+
+            } catch (error) {
+                if (typeof showToast === "function") {
+                    showToast(error.message, "error");
+                } else {
+                    alert(error.message);
+                }
+                btn.innerText = "Sign Up";
+                btn.disabled = false;
+            }
+        }
+
+        async function handleVerify(e) {
+            e.preventDefault();
+            const btn = document.getElementById("verify-btn");
+            const otpInput = document.getElementById("otp-input").value;
+
+            btn.disabled = true;
+            btn.innerText = "Verifying...";
+
+            try {
+                const res = await fetch(`${API_URL}/auth/verify-otp`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ email: registeredEmail, otp: otpInput })
+                });
+
+                if (res.ok) {
+                    showToast("Verified! Redirecting...", "success");
+                    setTimeout(() => window.location.href = "signin.html", 1500);
+                } else {
+                    const data = await res.json();
+                    showToast(data.message || "Invalid OTP", "error");
+                    btn.disabled = false;
+                    btn.innerText = "Verify & Login";
+                }
+            } catch (error) {
+                showToast("Verification failed", "error");
+                btn.disabled = false;
+                btn.innerText = "Verify & Login";
+            }
+        }
+
+        function startResendTimer() {
+            const btn = document.getElementById("resend-btn");
+            resendTimer = 30;
+            btn.disabled = true;
+            
+            resendInterval = setInterval(() => {
+                resendTimer--;
+                btn.innerText = `Resend OTP (${resendTimer}s)`;
+                if (resendTimer <= 0) {
+                    clearInterval(resendInterval);
+                    btn.innerText = "Resend OTP";
+                    btn.disabled = false;
+                    btn.onclick = handleResend;
+                }
+            }, 1000);
+        }
+
+        function handleResend() {
+             showToast("Feature requires backend endpoint. Please re-register.", "info");
+             startResendTimer();
+        }
+    </script>
+</body>
+</html>

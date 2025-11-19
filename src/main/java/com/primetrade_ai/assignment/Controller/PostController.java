@@ -66,6 +66,46 @@ public class PostController {
         return ResponseEntity.ok(new MessageResponse("Post created successfully!"));
     }
 
+
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updatePost(@PathVariable Long id, @RequestBody PostRequest postRequest) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        UserDetailsImpl userDetails = (UserDetailsImpl) auth.getPrincipal();
+
+        return postRepository.findById(id).map(post -> {
+            if (!post.getAuthor().getId().equals(userDetails.getId()) && !userDetails.getIsAdmin()) {
+                return ResponseEntity.status(403).body(new MessageResponse("Not authorized to edit this post."));
+            }
+
+            post.setTitle(postRequest.getTitle());
+            post.setBody(postRequest.getBody());
+            
+            if (postRequest.getThumbnail() != null && !postRequest.getThumbnail().isEmpty()) {
+                post.setThumbnail(postRequest.getThumbnail());
+            }
+
+            if (userDetails.getIsAdmin() && postRequest.getIsFeatured() != null) {
+                if (postRequest.getIsFeatured()) {
+                    List<Post> allPosts = postRepository.findAll();
+                    for (Post p : allPosts) {
+                        p.setIsFeatured(false);
+                    }
+                    postRepository.saveAll(allPosts);
+                }
+                post.setIsFeatured(postRequest.getIsFeatured());
+            }
+
+            if (postRequest.getCategoryId() != null) {
+                Category category = categoryRepository.findById(postRequest.getCategoryId())
+                        .orElseThrow(() -> new RuntimeException("Category not found"));
+                post.setCategory(category);
+            }
+
+            postRepository.save(post);
+            return ResponseEntity.ok(new MessageResponse("Post updated successfully!"));
+        }).orElse(ResponseEntity.notFound().build());
+    }
+
    
     @GetMapping("/{id}")
     public ResponseEntity<?> getPostById(@PathVariable Long id) {
