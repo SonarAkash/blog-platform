@@ -59,21 +59,48 @@ function showToast(message, type = 'info') {
 }
 
 
+// --- SEARCH LOGIC ---
 function handleSearch(e) {
-    e.preventDefault();
-    const query = document.querySelector(".search__bar input").value.toLowerCase();
-    const articles = document.querySelectorAll(".post");
+    e.preventDefault(); // Stop page reload
     
+    const searchInput = document.getElementById("search-input");
+    // Handle case where search bar might not exist on some pages
+    if (!searchInput) return;
+
+    const query = searchInput.value.toLowerCase();
+    const articles = document.querySelectorAll(".post"); // Get all post cards
+    
+    let found = false;
+
     articles.forEach(article => {
-        const title = article.querySelector(".post__tittle").innerText.toLowerCase();
-        const body = article.querySelector(".post_body").innerText.toLowerCase();
+        // Find title and body text within the card
+        const title = article.querySelector(".post__tittle")?.innerText.toLowerCase() || "";
+        const body = article.querySelector(".post_body")?.innerText.toLowerCase() || "";
         
         if (title.includes(query) || body.includes(query)) {
-            article.style.display = "block";
+            article.style.display = "block"; // Show match
+            found = true;
         } else {
-            article.style.display = "none";
+            article.style.display = "none"; // Hide mismatch
         }
     });
+
+    // Optional: Show "No results" message
+    const container = document.getElementById("posts-container");
+    let noResultMsg = document.getElementById("no-result-msg");
+    
+    if (!found) {
+        if (!noResultMsg) {
+            noResultMsg = document.createElement("h3");
+            noResultMsg.id = "no-result-msg";
+            noResultMsg.style.color = "white";
+            noResultMsg.style.textAlign = "center";
+            noResultMsg.innerText = "No posts found matching '" + query + "'";
+            container.appendChild(noResultMsg);
+        }
+    } else if (noResultMsg) {
+        noResultMsg.remove();
+    }
 }
 
 

@@ -65,7 +65,7 @@ public class WebSecurityConfig {
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> 
                 // 1. Public Pages
-                auth.requestMatchers("/", "/index.html", "/signin.html", "/signup.html", "/dashboard.html", "/post.html").permitAll()
+                auth.requestMatchers("/", "/index.html", "/signin.html", "/signup.html", "/dashboard.html", "/post.html", "/category-posts.html").permitAll()
                 
                 // 2. Auth & Uploads
                 .requestMatchers("/api/auth/**", "/api/upload/**").permitAll()

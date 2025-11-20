@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Category Posts</title>
+    <link rel="stylesheet" href="./css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>.hidden { display: none !important; }</style>
+</head>
+<body>
+    <nav>
+        <div class="container nav__container">
+            <a href="index.html" class="nav__logo">DIEMS BLOG.</a>
+            <ul class="nav__items">
+                <li><a href="index.html">Blog</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+                <li id="nav-guest"><a href="signin.html">Signin</a></li>
+                <li id="nav-user" class="nav__profile hidden">
+                    <div class="avatar"><img id="nav-avatar" src=""></div>
+                    <ul>
+                        <li><a href="dashboard.html">Dashboard</a></li>
+                        <li><a href="#" onclick="logout()">Logout</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <header class="branch__title">
+        <h2 id="category-title">Loading...</h2>
+    </header>
+
+    <section class="posts">
+        <div class="container posts__container" id="posts-container">
+            <h2 style="color: white; text-align: center;">Loading posts...</h2>
+        </div>
+    </section>
+
+    <section class="branch__buttons">
+        <div class="container branch__buttons-container" id="categories-container"></div>
+    </section>
+
+    <footer>
+        <div class="footer__copyright"><small>Copyright &copy; 2025 DIEMS Blog.</small></div>
+    </footer>
+
+    <script src="js/main.js"></script>
+    <script>
+        const API_URL = "http://localhost:8080/api";
+
+        window.onload = async () => {
+            checkAuth();
+            
+            const params = new URLSearchParams(window.location.search);
+            const categoryId = parseInt(params.get("id"));
+
+            if (!categoryId) {
+                window.location.href = "index.html";
+                return;
+            }
+
+            await loadCategoryData(categoryId);
+            await loadCategories();
+        };
+
+        async function loadCategoryData(catId) {
+            try {
+                const res = await fetch(`${API_URL}/posts`);
+                const allPosts = await res.json();
+
+                const filteredPosts = allPosts.filter(p => p.category && p.category.id === catId);
+
+                const titleEl = document.getElementById("category-title");
+                if (filteredPosts.length > 0) {
+                    titleEl.innerText = filteredPosts[0].category.title;
+                } else {
+                    titleEl.innerText = "Category";
+                }
+
+                const container = document.getElementById("posts-container");
+                container.innerHTML = "";
+                
+                if (filteredPosts.length === 0) {
+                    container.innerHTML = "<div class='alert__message error lg' style='text-align:center'><p>No posts found for this category</p></div>";
+                    return;
+                }
+
+                filteredPosts.forEach(post => {
+                    const date = new Date(post.dateTime).toLocaleString();
+                    const html = `
+                        <article class="post">
+                            <div class="post__thumbnail"><img src="${post.thumbnail}"></div>
+                            <div class="post__info">
+                                <h3 class="post__tittle"><a href="post.html?id=${post.id}">${post.title}</a></h3>
+                                <p class="post_body">${post.body.substring(0, 150)}...</p>
+                                <div class="post__author">
+                                    <div class="post__author-avatar"><img src="${post.author.avatar || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'}"></div>
+                                    <div class="post__author-info">
+                                        <h5>By: ${post.author.firstname}</h5>
+                                        <small>${date}</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </article>
+                    `;
+                    container.innerHTML += html;
+                });
+
+            } catch (e) {
+                console.error(e);
+            }
+        }
+        
+        async function loadCategories() {
+             const res = await fetch(`${API_URL}/categories`);
+             const cats = await res.json();
+             const container = document.getElementById("categories-container");
+             container.innerHTML = "";
+             cats.forEach(c => {
+                 container.innerHTML += `<a href="category-posts.html?id=${c.id}" class="branch__button">${c.title}</a>`;
+             });
+        }
+    </script>
+</body>
+</html>

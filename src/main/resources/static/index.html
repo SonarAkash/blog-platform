@@ -7,18 +7,23 @@
     <title>Blog Website</title>
     <link rel="stylesheet" href="./css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <style>.hidden { display: none !important; }</style>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <style>
+        .hidden {
+            display: none !important;
+        }
+    </style>
 </head>
 
 <body>
     <nav>
         <div class="container nav__container">
-            <a href="index.html" class="nav__logo">DIEMS BLOG.</a>
+            <a href="index.html" class="nav__logo">BLOGIFY</a>
             <ul class="nav__items">
                 <li><a href="index.html">Blog</a></li>
-                <li><a href="about.html">About</a></li>
-                <li><a href="contact.html">Contact</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
 
                 <li id="nav-guest"><a href="signin.html">Signin</a></li>
 
@@ -34,6 +39,16 @@
             </ul>
         </div>
     </nav>
+
+    <section class="search__bar">
+        <form class="container search__bar-container" onsubmit="handleSearch(event)">
+            <div>
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="search" id="search-input" placeholder="Search">
+            </div>
+            <button type="submit" class="btn">Go</button>
+        </form>
+    </section>
 
     <section id="featured-section" class="featured hidden">
         <div class="container featured__container" id="featured-container"></div>
@@ -51,7 +66,7 @@
 
     <footer>
         <div class="footer__copyright">
-            <small>Copyright &copy; 2025 DIEMS Blog.</small>
+            <small>Copyright &copy; 2025 BLOGIFY</small>
         </div>
     </footer>
 
@@ -60,7 +75,7 @@
     <script>
         const API_URL = "http://localhost:8080/api";
 
-      
+
         function checkAuth() {
             const token = localStorage.getItem("jwtToken");
             const userStr = localStorage.getItem("user");
@@ -87,17 +102,12 @@
             window.location.href = "signin.html";
         }
 
-        // -----------------------------
-        // ON PAGE LOAD
-        // -----------------------------
         window.onload = async () => {
             checkAuth();
             await Promise.all([loadCategories(), loadPosts()]);
         };
 
-        // -----------------------------
-        // LOAD POSTS
-        // -----------------------------
+       
         async function loadPosts() {
             const container = document.getElementById("posts-container");
 
@@ -152,9 +162,7 @@
             }
         }
 
-        // -----------------------------
-        // FEATURED POST
-        // -----------------------------
+       
         function renderFeatured(post) {
             const container = document.getElementById("featured-container");
             const date = new Date(post.dateTime).toLocaleString();
@@ -183,9 +191,7 @@
             document.getElementById("featured-section").classList.remove("hidden");
         }
 
-        // -----------------------------
-        // CATEGORIES
-        // -----------------------------
+        
         async function loadCategories() {
             const res = await fetch(`${API_URL}/categories`);
             const cats = await res.json();
@@ -202,4 +208,5 @@
     </script>
 
 </body>
+
 </html>

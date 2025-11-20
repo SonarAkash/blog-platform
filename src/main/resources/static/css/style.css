@@ -24,6 +24,27 @@
     --card-border-radius-5: 5rem;
 }
 
+
+/* --- FINAL AVATAR FIX --- */
+.nav__profile .avatar {
+    width: 45px !important;       /* Force fixed width */
+    height: 45px !important;      /* Force fixed height */
+    min-width: 45px !important;   /* Prevent squishing */
+    border-radius: 50% !important; /* Perfect Circle */
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.nav__profile .avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Ensures the image fills the circle without stretching */
+    display: block;
+}
+
 * {
     margin: 0;
     padding: 0;

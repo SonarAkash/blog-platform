@@ -3,14 +3,18 @@ package com.primetrade_ai.assignment.Config;
 import com.cloudinary.Cloudinary;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.beans.factory.annotation.Value;
+
 
 @Configuration
 public class CloudinaryConfig {
+    
+
+    @Value("${cloudinary.api.key}")
+    private String cloudinaryApiKey;
 
     @Bean
     public Cloudinary cloudinary() {
-        String cloudinaryUrl = "cloudinary://217137554518434:874sxfFAKVcnweklQWRYJydqMJ0@dudkg98ml";
-        
-        return new Cloudinary(cloudinaryUrl);
+        return new Cloudinary(this.cloudinaryApiKey);
     }
 }

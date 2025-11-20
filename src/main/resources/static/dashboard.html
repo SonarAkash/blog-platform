@@ -16,11 +16,11 @@
 <body>
     <nav>
         <div class="container nav__container">
-            <a href="index.html" class="nav__logo">DIEMS BLOG.</a>
+            <a href="index.html" class="nav__logo">BLOGIFY</a>
             <ul class="nav__items">
                 <li><a href="index.html">Blog</a></li>
-                <li><a href="about.html">About</a></li>
-                <li><a href="contact.html">Contact</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
                 <li class="nav__profile">
                     <div class="avatar"><img id="nav-avatar" src=""></div>
                     <ul>
@@ -34,7 +34,6 @@
     <section class="dashboard">
         <div class="container dashboard__container">
 
-            <!-- SIDEBAR -->
             <aside>
                 <ul>
                     <li>
@@ -61,10 +60,8 @@
             </aside>
 
 
-            <!-- MAIN CONTENT -->
             <main>
 
-                <!-- MANAGE POSTS -->
                 <div id="view-manage-posts">
                     <h2>Manage Posts</h2>
                     <table>
@@ -75,7 +72,6 @@
                     </table>
                 </div>
 
-                <!-- ADD / EDIT POST -->
                 <div id="view-add-post" class="hidden">
                     <h2 id="form-title">Add Post</h2>
 
@@ -104,7 +100,6 @@
                     </form>
                 </div>
 
-                <!-- MANAGE CATEGORIES -->
                 <div id="view-manage-categories" class="hidden">
                     <h2>Manage Categories</h2>
                     <table>
@@ -113,7 +108,6 @@
                     </table>
                 </div>
 
-                <!-- ADD CATEGORY -->
                 <div id="view-add-category" class="hidden">
                     <h2>Add Category</h2>
                     <form onsubmit="handleAddCategory(event)">
@@ -130,22 +124,18 @@
    <script src="js/main.js"></script>
 
 <script>
-    /* ---------------------- GLOBALS ---------------------- */
     const API_URL = "http://localhost:8080/api";
     const currentUser = JSON.parse(localStorage.getItem("user"));
     const token = localStorage.getItem("jwtToken");
 
-    /* ---------------------- ON LOAD ---------------------- */
     window.onload = async () => {
         if (!token || !currentUser) {
             return (window.location.href = "signin.html");
         }
 
-        // Navbar avatar
         const avatarImg = document.getElementById("nav-avatar");
         avatarImg.src = currentUser.avatar || "https://cdn-icons-png.flaticon.com/512/149/149071.png";
 
-        // Admin items
         if (currentUser.isAdmin) {
             document.querySelectorAll(".admin-only").forEach(el =>
                 el.classList.remove("hidden")
@@ -156,7 +146,6 @@
         if (currentUser.isAdmin) await loadCategoriesTable();
     };
 
-    /* ---------------- TAB SWITCH ---------------- */
     function showTab(tabName, linkEl) {
         const views = [
             "view-manage-posts",
@@ -180,7 +169,6 @@
         }
     }
 
-    /* ---------------- LOAD POSTS ---------------- */
     async function loadMyPosts() {
         try {
             const res = await fetch(`${API_URL}/posts`);
@@ -221,7 +209,6 @@
         }
     }
 
-    /* ---------------- EDIT POST ---------------- */
     async function editPost(id) {
         const res = await fetch(`${API_URL}/posts/${id}`);
         const post = await res.json();
@@ -254,7 +241,6 @@
         document.getElementById("btn-cancel-edit").classList.add("hidden");
     }
 
-    /* ---------------- SAVE / UPDATE POST ---------------- */
    async function handleSavePost(e) {
         e.preventDefault();
         const editId = document.getElementById("edit-post-id").value;
@@ -310,7 +296,6 @@
         btn.innerText = editId ? "Update Post" : "Publish Post";
     }
 
-    /* ---------------- DELETE POST ---------------- */
     async function deletePost(id) {
         if (!confirm("Delete this post?")) return;
         await fetch(`${API_URL}/posts/${id}`, {
@@ -320,7 +305,6 @@
         loadMyPosts();
     }
 
-    /* ---------------- CATEGORIES ---------------- */
     async function loadCategoriesDropdown() {
         const res = await fetch(`${API_URL}/categories`);
         const cats = await res.json();
@@ -344,19 +328,35 @@
             tbody.innerHTML += `
                 <tr>
                     <td>${c.title}</td>
-                    <td><a href="#" class="btn sm danger" onclick="deleteCategory(${c.id})">Delete</a></td>
+                    <td><a href="#" class="btn sm danger" onclick="deleteCategory(${c.id}, this)">Delete</a></td>
                 </tr>
             `;
         });
     }
 
-    async function deleteCategory(id) {
-        if (!confirm("Delete category?")) return;
-        await fetch(`${API_URL}/categories/${id}`, {
-            method: "DELETE",
-            headers: { Authorization: `Bearer ${token}` }
-        });
-        loadCategoriesTable();
+    async function deleteCategory(id, btnElement) {
+        if(!confirm("Delete this category?")) return;
+        
+        const row = btnElement.closest("tr");
+        row.style.opacity = "0.3"; 
+        
+        try {
+            const res = await fetch(`${API_URL}/categories/${id}`, {
+                method: "DELETE",
+                headers: { "Authorization": `Bearer ${token}` }
+            });
+            
+            if(res.ok) {
+                showToast("Category Deleted", "success");
+                row.remove(); 
+            } else {
+                showToast("Failed to delete", "error");
+                row.style.opacity = "1"; 
+            }
+        } catch(e) {
+            showToast("Server Error", "error");
+            row.style.opacity = "1";
+        }
     }
 
     async function handleAddCategory(e) {
