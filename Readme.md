@@ -11,16 +11,16 @@ This project is a full-stack blog application designed to demonstrate **Scalable
 
 ## Homepage-featured-post
 
-![Homepage-featured-post](images\homepage.png)
+![Homepage-featured-post](images/homepage.png)
 
 ## Homepage-posts
-![Homepage-posts](images\homepage2.png)
+![Homepage-posts](images/homepage2.png)
 
 ## user-dashboard
-![user-dashboard](images\userdashboard.png)
+![user-dashboard](images/userdashboard.png)
 
 ## admin-dashboard
-![admin-dashboard](images\admindashboard.png)
+![admin-dashboard](images/admindashboard.png)
 
 
 
@@ -179,7 +179,7 @@ Redis provides in-memory sub-millisecond access with automatic TTL expiration.
 
 ### 👤 Author
 **Akash Sonar**
- 
+
 **Email:** akashsonar.9113@gmail.com  
 
 Built for **PrimeTrade AI Backend Developer Internship Assignment**.
